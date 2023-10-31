@@ -6,4 +6,5 @@ A game run via 2 consoles
 - Run "python main.py"
 ## Console 2 - The game engine
 - Go to /battlesnake
-- Run "single-run.cmd" or "multi-run.cmd" depending on single- or multi-agent run
+- Run "single-run.cmd" or "multi-run.cmd" depending on single- or multi-agent run with a console representation
+- Alternative "-browser" versions exist for a more visual representation

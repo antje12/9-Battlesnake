@@ -1,0 +1,1 @@
+battlesnake play -W 11 -H 11 --name TestSnake --url http://localhost:8000 -g solo --browser
