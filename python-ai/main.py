@@ -94,6 +94,11 @@ def move(game_state: typing.Dict) -> typing.Dict:
 
     # TODO: Step 4 - Move towards food instead of random, to regain health and survive longer
     # food = game_state['board']['food']
+    result = aStarSearch(my_head["x"], my_head["y"], 10, 10)
+    print("--------------------------------------")
+    for node in result:
+        print(node.key())
+    print("--------------------------------------")
 
     print(f"MOVE {game_state['turn']}: {next_move}")
     return {"move": next_move}
@@ -101,28 +106,26 @@ def move(game_state: typing.Dict) -> typing.Dict:
 '''
 A* code
 '''
-class Node:  # Node has only PARENT_NODE, STATE, DEPTH
+class Node:
     def __init__(self, x, y, parent=None, depth=0, cost=0, f=0):
-        self.X = x
-        self.Y = y
+        self.x = x
+        self.y = y
+        self.parent = parent
+        self.depth = depth
+        self.cost = cost
+        self.f = f
 
-        self.PARENT_NODE = parent
+    def key(self):
+        return f"{self.x}:{self.y}"
 
-        self.DEPTH = depth
-        self.COST = cost
-        self.F = f
-
-    def key(self):  # Create a list of nodes from the root to this node.
-        return "" + self.x + ":" + self.y
-
-    def path(self):  # Create a list of nodes from the root to this node.
+    def path(self):
         current_node = self
         path = [self]
-        while current_node.PARENT_NODE:  # while current node has parent
-            current_node = current_node.PARENT_NODE  # make parent the current node
-            path.append(current_node)   # add current node to path
+        while current_node.parent:
+            current_node = current_node.parent
+            path.append(current_node)
         return path
-    
+
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y
 
@@ -136,19 +139,19 @@ def aStarSearch(xF, yF, xT, yT):
     initial_node = Node(xF, yF)
     goal_node = Node(xT, yT)
 
-    fringe[initial_node.key] = initial_node
+    fringe[initial_node.key()] = initial_node
 
     while len(fringe) > 0:
         node = getCheapestNode(fringe)
-        fringe.pop(node.key)
-        visited[node.key] = node
+        fringe.pop(node.key())
+        visited[node.key()] = node
 
         if node == goal_node:
             return node.path()
-        
+
         children = expandNode(node, goal_node, fringe, visited)
         for child in children:
-            fringe[child.key] = child
+            fringe[child.key()] = child
 
 '''
 Expands node and gets the successors (children) of that node.
@@ -159,19 +162,18 @@ def expandNode(node, goal, fringe, visited):
     children = getChildren(node)
 
     for child in children:
-
-        if child.key in visited: 
+        if child.key() in visited:
             continue
 
-        child.PARENT_NODE = node
-        child.DEPTH = node.DEPTH + 1
-        child.COST = node.COST + 1
-        child.F = f(child, goal)
+        child.parent = node
+        child.depth = node.depth + 1
+        child.cost = node.cost + 1
+        child.f = f(child, goal)
 
-        if child.key in fringe and child.COST > fringe[child.key()].cost: 
+        if child.key() in fringe and child.cost > fringe[child.key()].cost:
             continue
 
-        successors.append(child, successors)
+        successors.append(child)
     return successors
 
 '''
@@ -179,31 +181,28 @@ Successor function, mapping the nodes to its successors
 '''
 def getChildren(node):  # Lookup list of successor states
     children = []
-    children.append(Node(node.x+1, node.y, node), children)
-    children.append(Node(node.x-1, node.y, node), children)
-    children.append(Node(node.x, node.y+1, node), children)
-    children.append(Node(node.x, node.y-1, node), children)
+    children.append(Node(node.x+1, node.y, node))
+    children.append(Node(node.x-1, node.y, node))
+    children.append(Node(node.x, node.y+1, node))
+    children.append(Node(node.x, node.y-1, node))
     return children  # successor_fn( 'C' ) returns ['F', 'G']
 
 '''
 Removes and returns the cheapest element from fringe
 '''
 def getCheapestNode(fringe):
-    # Find the cheapest node! f(n) = g(n) + h(n)
     cheapest = None
-    for n in fringe:
-        if cheapest == None:
-            cheapest = n
-        elif (n.F < cheapest.F):
-            cheapest = n
-    return cheapest
+    for key in fringe:
+        if cheapest is None or fringe[key].f < fringe[cheapest].f:
+            cheapest = key
+    return fringe[cheapest]
 
 def f(n, goal):
     return g(n) + 0 + h(n, goal)
 
 def g(n):
     # travel cost
-    return n.COST
+    return n.cost
 
 def h(n, goal):
     # heuristic cost
