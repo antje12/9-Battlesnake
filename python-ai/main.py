@@ -22,10 +22,10 @@ def info() -> typing.Dict:
 
     return {
         "apiversion": "1",
-        "author": "antje12",  # TODO: Your Battlesnake Username
-        "color": "#A4D389",  # TODO: Choose color
-        "head": "evil",  # TODO: Choose head
-        "tail": "bolt",  # TODO: Choose tail
+        "author": "antje12", # TODO: Your Battlesnake Username
+        "color": "#A4D389", # TODO: Choose color
+        "head": "evil", # TODO: Choose head
+        "tail": "bolt", # TODO: Choose tail
     }
 
 # start is called when your Battlesnake begins a game
@@ -41,61 +41,14 @@ def end(game_state: typing.Dict):
 # See https://docs.battlesnake.com/api/example-move for available data
 def move(game_state: typing.Dict) -> typing.Dict:
 
-    is_move_safe = {"up": True, "down": True, "left": True, "right": True}
+    moves = ["up", "down", "left", "right"]
+    next_move = random.choice(moves)
 
-    # We've included code to prevent your Battlesnake from moving backwards
-    my_head = game_state["you"]["body"][0]  # Coordinates of your head
-    my_neck = game_state["you"]["body"][1]  # Coordinates of your "neck"
-
-    if my_neck["x"] < my_head["x"]: is_move_safe["left"] = False
-    elif my_neck["x"] > my_head["x"]: is_move_safe["right"] = False
-    elif my_neck["y"] < my_head["y"]: is_move_safe["down"] = False
-    elif my_neck["y"] > my_head["y"]: is_move_safe["up"] = False
-
-    # TODO: Step 1 - Prevent your Battlesnake from moving out of bounds
-    board_width = game_state['board']['width'] - 1
-    board_height = game_state['board']['height'] - 1
-
-    if (my_head["x"] == 0): is_move_safe["left"] = False
-    if (my_head["x"] == board_width): is_move_safe["right"] = False
-    if (my_head["y"] == 0): is_move_safe["down"] = False
-    if (my_head["y"] == board_height): is_move_safe["up"] = False
-
-    # TODO: Step 2 - Prevent your Battlesnake from colliding with itself
-    my_body = game_state['you']['body']
-    for n in my_body:
-        if (n["x"]+1 == my_head["x"] and n["y"] == my_head["y"]): is_move_safe["left"] = False
-        if (n["x"]-1 == my_head["x"] and n["y"] == my_head["y"]): is_move_safe["right"] = False
-        if (n["y"]+1 == my_head["y"] and n["x"] == my_head["x"]): is_move_safe["down"] = False
-        if (n["y"]-1 == my_head["y"] and n["x"] == my_head["x"]): is_move_safe["up"] = False
-
-    # TODO: Step 3 - Prevent your Battlesnake from colliding with other Battlesnakes
-    opponents = game_state['board']['snakes']
-
-    for m in opponents:
-        their_body = m["body"]
-        for n in their_body:
-            if (n["x"]+1 == my_head["x"] and n["y"] == my_head["y"]): is_move_safe["left"] = False
-            if (n["x"]-1 == my_head["x"] and n["y"] == my_head["y"]): is_move_safe["right"] = False
-            if (n["y"]+1 == my_head["y"] and n["x"] == my_head["x"]): is_move_safe["down"] = False
-            if (n["y"]-1 == my_head["y"] and n["x"] == my_head["x"]): is_move_safe["up"] = False
-
-    # Are there any safe moves left?
-    safe_moves = []
-    for move, isSafe in is_move_safe.items():
-        if isSafe:
-            safe_moves.append(move)
-
-    if len(safe_moves) == 0:
-        print(f"MOVE {game_state['turn']}: No safe moves detected! Moving down")
-        return {"move": "down"}
-
-    # Choose a random move from the safe ones
-    next_move = random.choice(safe_moves)
-
-    # TODO: Step 4 - Move towards food instead of random, to regain health and survive longer
+    board = game_state['board']
+    my_head = game_state["you"]["body"][0] # Coordinates of your head
     food = game_state['board']['food']
     hazards = game_state['board']['hazards']
+    opponents = game_state['board']['snakes']
 
     goal = getClosestGoal(my_head, food)
 
@@ -106,11 +59,7 @@ def move(game_state: typing.Dict) -> typing.Dict:
     for hazard in hazards:
         dangers.add(f"{hazard['x']}:{hazard['y']}")
 
-    result = aStarSearch(my_head, goal, dangers)
-    print("Go to --------------------------------")
-    print(result.key())
-    print("--------------------------------------")
-
+    result = aStarSearch(board, my_head, goal, dangers)
     if result.x < my_head["x"]: next_move = "left"
     elif result.x > my_head["x"]: next_move = "right"
     elif result.y < my_head["y"]: next_move = "down"
@@ -121,22 +70,15 @@ def move(game_state: typing.Dict) -> typing.Dict:
 
 def getClosestGoal(me, goals):
     best = None
-    bestScore = None
+    bestDistance = None
     for goal in goals:
-        if best is None or score(me, goal) < bestScore:
+        distance = h(me["x"], me["y"], goal["x"], goal["y"])
+        if best is None or distance < bestDistance:
             best = goal
-            bestScore = score(me, goal)
+            bestDistance = distance
     return best
 
-def score(n, goal): # heuristic cost
-    dx = n["x"] - goal["x"] # x distance to target
-    dy = n["y"] - goal["y"] # y distance to target
-    distance = sqrt(dx * dx + dy * dy) # a^2 + b^2 = c^2 # c = sqrt(a^2 + b^2)
-    return distance
-
-'''
-A* code
-'''
+# A* code
 class Node:
     def __init__(self, x, y, parent=None, depth=0, cost=0, f=0):
         self.x = x
@@ -160,7 +102,7 @@ class Node:
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y
 
-def aStarSearch(me, goal, dangers):
+def aStarSearch(board, me, goal, dangers):
     fringe = {}
     visited = {}
 
@@ -177,13 +119,15 @@ def aStarSearch(me, goal, dangers):
         if node == goal_node:
             return node.path()[-2]
 
-        children = expandNode(node, goal_node, dangers, fringe, visited)
+        children = expandNode(board, node, goal_node, dangers, fringe, visited)
         for child in children:
             fringe[child.key()] = child
+    
+    # no path to food found!
 
-def expandNode(node, goal, dangers, fringe, visited):
+def expandNode(board, node, goal, dangers, fringe, visited):
     successors = []
-    children = getChildren(node, dangers)
+    children = getChildren(board, node, dangers)
 
     for child in children:
         if child.key() in visited:
@@ -200,27 +144,18 @@ def expandNode(node, goal, dangers, fringe, visited):
         successors.append(child)
     return successors
 
-def getChildren(node, dangers):  # Lookup list of successor states
+def getChildren(board, node, dangers): # Lookup list of successor states
     children = []
-    addIfValid(children, Node(node.x+1, node.y, node), dangers)
-    #children.append(Node(node.x+1, node.y, node))
-    addIfValid(children, Node(node.x-1, node.y, node), dangers)
-    addIfValid(children, Node(node.x, node.y+1, node), dangers)
-    addIfValid(children, Node(node.x, node.y-1, node), dangers)
-    print("Children-----------")
-    for child in children:
-        print(child.key())
-    print("-------------------")
-    return children  # successor_fn( 'C' ) returns ['F', 'G']
+    addIfValid(board, children, Node(node.x+1, node.y), dangers)
+    addIfValid(board, children, Node(node.x-1, node.y), dangers)
+    addIfValid(board, children, Node(node.x, node.y+1), dangers)
+    addIfValid(board, children, Node(node.x, node.y-1), dangers)
+    return children 
 
-def addIfValid(children, node, dangers):
-    if node.x < 0:
+def addIfValid(board, children, node, dangers):
+    if node.x < 0 or board['width'] - 1 < node.x:
         return
-    elif node.x > 10:
-        return
-    elif node.y < 0:
-        return
-    elif node.y > 10:
+    elif node.y < 0 or board['height'] - 1 < node.y:
         return
     elif node.key() in dangers:
         return
@@ -235,14 +170,14 @@ def getCheapestNode(fringe):
     return fringe[cheapest]
 
 def f(n, goal):
-    return g(n) + 5 * h(n, goal)
+    return g(n) + 5 * h(n.x, n.y, goal.x, goal.y)
 
 def g(n):
     return n.cost # travel cost
 
-def h(n, goal): # heuristic cost
-    dx = n.x - goal.x # x distance to target
-    dy = n.y - goal.y # y distance to target
+def h(nodeX, nodeY, goalX, goalY): # heuristic cost
+    dx = nodeX - goalX # x distance to target
+    dy = nodeY - goalY # y distance to target
     distance = sqrt(dx * dx + dy * dy) # a^2 + b^2 = c^2 # c = sqrt(a^2 + b^2)
     return distance
 
