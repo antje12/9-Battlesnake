@@ -31,7 +31,7 @@ public class AStarEngine {
             World world, Entity me,
             Node node, PositionPart goalState,
             HashMap<String, Node> fringe, HashMap<String, Node> visited) {
-                
+
         HashMap<String, Node> successors = new HashMap<String, Node>();
         ArrayList<PositionPart> children = getChildren(world, me, node.state);
 
@@ -71,6 +71,19 @@ public class AStarEngine {
         addIfValid(world, me, children, x + 1, y);
         addIfValid(world, me, children, x - 1, y);
         return children;
+    }
+
+    private void addIfValid(
+            World world,
+            Entity me,
+            ArrayList<PositionPart> children,
+            float x,
+            float y) {
+        if (this.collisionChecker == null) {
+            children.add(new PositionPart(x, y));
+        } else if (this.collisionChecker.isPositionFree(world, me, x, y)) {
+            children.add(new PositionPart(x, y));
+        }
     }
 
     private Node getCheapestNode(HashMap<String, Node> fringe) {

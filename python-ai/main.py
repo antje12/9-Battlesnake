@@ -71,6 +71,7 @@ def move(game_state: typing.Dict) -> typing.Dict:
 
     # TODO: Step 3 - Prevent your Battlesnake from colliding with other Battlesnakes
     opponents = game_state['board']['snakes']
+
     for m in opponents:
         their_body = m["body"]
         for n in their_body:
@@ -93,15 +94,45 @@ def move(game_state: typing.Dict) -> typing.Dict:
     next_move = random.choice(safe_moves)
 
     # TODO: Step 4 - Move towards food instead of random, to regain health and survive longer
-    # food = game_state['board']['food']
-    result = aStarSearch(my_head["x"], my_head["y"], 10, 10)
+    food = game_state['board']['food']
+    hazards = game_state['board']['hazards']
+
+    goal = getClosestGoal(my_head, food)
+
+    dangers = set()
+    for oponent in opponents:
+        for part in oponent["body"]:
+            dangers.add(f"{part['x']}:{part['y']}")
+    for hazard in hazards:
+        dangers.add(f"{hazard['x']}:{hazard['y']}")
+
+    result = aStarSearch(my_head, goal, dangers)
+    print("Go to --------------------------------")
+    print(result.key())
     print("--------------------------------------")
-    for node in result:
-        print(node.key())
-    print("--------------------------------------")
+
+    if result.x < my_head["x"]: next_move = "left"
+    elif result.x > my_head["x"]: next_move = "right"
+    elif result.y < my_head["y"]: next_move = "down"
+    elif result.y > my_head["y"]: next_move = "up"
 
     print(f"MOVE {game_state['turn']}: {next_move}")
     return {"move": next_move}
+
+def getClosestGoal(me, goals):
+    best = None
+    bestScore = None
+    for goal in goals:
+        if best is None or score(me, goal) < bestScore:
+            best = goal
+            bestScore = score(me, goal)
+    return best
+
+def score(n, goal): # heuristic cost
+    dx = n["x"] - goal["x"] # x distance to target
+    dy = n["y"] - goal["y"] # y distance to target
+    distance = sqrt(dx * dx + dy * dy) # a^2 + b^2 = c^2 # c = sqrt(a^2 + b^2)
+    return distance
 
 '''
 A* code
@@ -129,15 +160,12 @@ class Node:
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y
 
-'''
-Search the tree for the goal state and return path from initial state to goal state
-'''
-def aStarSearch(xF, yF, xT, yT):
+def aStarSearch(me, goal, dangers):
     fringe = {}
     visited = {}
 
-    initial_node = Node(xF, yF)
-    goal_node = Node(xT, yT)
+    initial_node = Node(me["x"], me["y"])
+    goal_node = Node(goal["x"], goal["y"])
 
     fringe[initial_node.key()] = initial_node
 
@@ -147,19 +175,15 @@ def aStarSearch(xF, yF, xT, yT):
         visited[node.key()] = node
 
         if node == goal_node:
-            return node.path()
+            return node.path()[-2]
 
-        children = expandNode(node, goal_node, fringe, visited)
+        children = expandNode(node, goal_node, dangers, fringe, visited)
         for child in children:
             fringe[child.key()] = child
 
-'''
-Expands node and gets the successors (children) of that node.
-Return list of the successor nodes.
-'''
-def expandNode(node, goal, fringe, visited):
+def expandNode(node, goal, dangers, fringe, visited):
     successors = []
-    children = getChildren(node)
+    children = getChildren(node, dangers)
 
     for child in children:
         if child.key() in visited:
@@ -176,20 +200,33 @@ def expandNode(node, goal, fringe, visited):
         successors.append(child)
     return successors
 
-'''
-Successor function, mapping the nodes to its successors
-'''
-def getChildren(node):  # Lookup list of successor states
+def getChildren(node, dangers):  # Lookup list of successor states
     children = []
-    children.append(Node(node.x+1, node.y, node))
-    children.append(Node(node.x-1, node.y, node))
-    children.append(Node(node.x, node.y+1, node))
-    children.append(Node(node.x, node.y-1, node))
+    addIfValid(children, Node(node.x+1, node.y, node), dangers)
+    #children.append(Node(node.x+1, node.y, node))
+    addIfValid(children, Node(node.x-1, node.y, node), dangers)
+    addIfValid(children, Node(node.x, node.y+1, node), dangers)
+    addIfValid(children, Node(node.x, node.y-1, node), dangers)
+    print("Children-----------")
+    for child in children:
+        print(child.key())
+    print("-------------------")
     return children  # successor_fn( 'C' ) returns ['F', 'G']
 
-'''
-Removes and returns the cheapest element from fringe
-'''
+def addIfValid(children, node, dangers):
+    if node.x < 0:
+        return
+    elif node.x > 10:
+        return
+    elif node.y < 0:
+        return
+    elif node.y > 10:
+        return
+    elif node.key() in dangers:
+        return
+    else:
+        children.append(node)
+
 def getCheapestNode(fringe):
     cheapest = None
     for key in fringe:
@@ -198,22 +235,15 @@ def getCheapestNode(fringe):
     return fringe[cheapest]
 
 def f(n, goal):
-    return g(n) + 0 + h(n, goal)
+    return g(n) + 5 * h(n, goal)
 
 def g(n):
-    # travel cost
-    return n.cost
+    return n.cost # travel cost
 
-def h(n, goal):
-    # heuristic cost
-    # x distance to target
-    dx = n.x - goal.x
-    # y distance to target
-    dy = n.y - goal.y
-
-    # a^2 + b^2 = c^2
-    # c = sqrt(a^2 + b^2)
-    distance = sqrt(dx * dx + dy * dy)
+def h(n, goal): # heuristic cost
+    dx = n.x - goal.x # x distance to target
+    dy = n.y - goal.y # y distance to target
+    distance = sqrt(dx * dx + dy * dy) # a^2 + b^2 = c^2 # c = sqrt(a^2 + b^2)
     return distance
 
 # Start server when `python main.py` is run
