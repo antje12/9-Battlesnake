@@ -124,6 +124,7 @@ def aStarSearch(board, me, goal, dangers):
             fringe[child.key()] = child
     
     # no path to food found!
+    return survivalSearch(board, initial_node, dangers)
 
 def expandNode(board, node, goal, dangers, fringe, visited):
     successors = []
@@ -180,6 +181,13 @@ def h(nodeX, nodeY, goalX, goalY): # heuristic cost
     dy = nodeY - goalY # y distance to target
     distance = sqrt(dx * dx + dy * dy) # a^2 + b^2 = c^2 # c = sqrt(a^2 + b^2)
     return distance
+
+# survivalSearch
+def survivalSearch(board, me, dangers):
+    children = getChildren(board, me, dangers)
+    if len(children) > 0:
+        return random.choice(children)
+    return me
 
 # Start server when `python main.py` is run
 if __name__ == "__main__":
