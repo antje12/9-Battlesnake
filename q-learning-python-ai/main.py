@@ -30,8 +30,6 @@ rewards_all_episodes = []
 # Q-learning algorithm 
 for episode in range(num_episodes):
     state, info = env.reset()
-    #print("----------")
-    #print(state)
 
     done = False
     rewards_current_episode = 0
@@ -45,15 +43,8 @@ for episode in range(num_episodes):
         else:
             action = env.action_space.sample()
         
-        #print("----------")
-        #print("action: " + str(action))
         new_state, reward, done, truncated, info = env.step(action)
 
-        # Update Q-table for Q(s, a)
-        #print("----------")
-        #print("update q table")
-        #print("state: " + str(state))
-        #print("action: " + str(action))
         q_table[state, action] = q_table[state, action] * (1 - learning_rate) + \
             learning_rate * (reward + discount_rate * np.max(q_table[new_state, :]))
 
@@ -72,14 +63,38 @@ for episode in range(num_episodes):
 # Calculate and print the average reward per thousand episodes
 rewards_per_thousand_episodes = np.split(np.array(rewards_all_episodes), num_episodes/1000)
 count = 1000
-print ("----------Average reward per thousand episodes----------\n")
+print ("----------Average reward per thousand episodes----------")
 for r in rewards_per_thousand_episodes:
     print(count, ": ", str(sum(r/1000)))
     count += 1000
 
 # Print updated Q-table
-print("\n\n----------Q-table----------\n")
+print("----------Q-table----------")
 print(q_table)
+
+env = gym.make('FrozenLake-v1', render_mode="human")
+for episode in range(3):
+    state, info = env.reset()
+    done = False
+    print("----------Episode ", episode+1, "----------")
+    time.sleep(1)
+
+    for Step in range(max_steps_per_episode):
+        action = np.argmax(q_table[state, :])
+        new_state, reward, done, truncated, info = env.step(action)
+
+        if done:
+            if reward == 1:
+                print("----------You reached the goal!----------")
+                time.sleep(1)
+            else:
+                print("----------You fell through a hole!----------")
+                time.sleep(1)
+            break
+        
+        state = new_state
+
+env.close()
 
 #episodes = 10
 #for episode in range(1, episodes+1):
