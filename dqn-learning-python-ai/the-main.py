@@ -32,9 +32,9 @@ EXPLORATION_MAX = 1.0
 EXPLORATION_DECAY = 0.999
 EXPLORATION_MIN = 0.001
 
-FC1_DIMS = 1024
-FC2_DIMS = 512
-DEVICE = torch.device("cpu")
+HIDDEN_LAYER1_DIMS = 1024
+HIDDEN_LAYER2_DIMS = 512
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 best_reward = 0
 average_reward = 0
@@ -46,9 +46,9 @@ class Network(torch.nn.Module):
         super().__init__()
 
         input_size = np.prod(observation_space)
-        self.fc1 = nn.Linear(input_size, FC1_DIMS)
-        self.fc2 = nn.Linear(FC1_DIMS, FC2_DIMS)
-        self.fc3 = nn.Linear(FC2_DIMS, action_space)
+        self.fc1 = nn.Linear(input_size, HIDDEN_LAYER1_DIMS)
+        self.fc2 = nn.Linear(HIDDEN_LAYER1_DIMS, HIDDEN_LAYER2_DIMS)
+        self.fc3 = nn.Linear(HIDDEN_LAYER2_DIMS, action_space)
 
         self.optimizer = optim.Adam(self.parameters(), lr=LEARNING_RATE)
         self.loss = nn.MSELoss()
