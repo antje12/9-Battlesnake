@@ -28,15 +28,15 @@ class SimpleRewards(Rewards):
         self.reward_dict = {"another_turn": 1,
                             "ate_food": 10,
                             "won": 0,
-                            "died": 0,
-                            "ate_another_snake": 0,
-                            "hit_wall": 0,
-                            "hit_other_snake": 0,
-                            "hit_self": 0,
-                            "was_eaten": 0,
-                            "other_snake_hit_body": 0,
-                            "forbidden_move": 0,
-                            "starved": 0}
+                            "died": -10,
+                            "ate_another_snake": 10,
+                            "hit_wall": -10,
+                            "hit_other_snake": -5,
+                            "hit_self": -10,
+                            "was_eaten": -5,
+                            "other_snake_hit_body": 10,
+                            "forbidden_move": -20,
+                            "starved": -10}
 
     def get_reward(self, name, snake_id, episode):
         return self.reward_dict[name]

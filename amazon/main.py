@@ -44,5 +44,3 @@ for episode in range(1, episodes+1):
     print(f"Episode: {episode}, Score: {score}")
 
 env.close()
-
-env.close()
