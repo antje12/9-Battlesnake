@@ -25,15 +25,18 @@ print("--------------------")
 
 EPISODES = 1000
 LEARNING_RATE = 0.0001
+
 MEM_SIZE = 10000
 BATCH_SIZE = 64
 GAMMA = 0.95
+
 EXPLORATION_MAX = 1.0
 EXPLORATION_DECAY = 0.999
 EXPLORATION_MIN = 0.001
 
 HIDDEN_LAYER1_DIMS = 1024
 HIDDEN_LAYER2_DIMS = 512
+
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 best_reward = 0
