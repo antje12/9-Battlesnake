@@ -26,7 +26,7 @@ print("--------------------")
 EPISODES = 1000
 LEARNING_RATE = 0.0001
 
-MEM_SIZE = 10000
+MEM_SIZE = 1000
 BATCH_SIZE = 200
 GAMMA = 0.95
 
