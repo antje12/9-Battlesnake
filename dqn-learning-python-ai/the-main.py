@@ -15,8 +15,13 @@ from battlesnake_gym.snake import Snake
 # taken from https://andrew-gordienko.medium.com/reinforcement-learning-dqn-w-pytorch-7c6faad3d1e
 
 env = BattlesnakeGym(map_size=(11, 11), number_of_snakes=1)
-observation_space = env.observation_space.shape[0]
-action_space = 4
+observation_space = env.observation_space.shape
+print("Observation space:")
+print(observation_space)
+action_space = env.action_space[0].n
+print("Action space:")
+print(action_space)
+print("--------------------")
 
 EPISODES = 1000
 LEARNING_RATE = 0.0001
@@ -39,13 +44,11 @@ average_reward_number = []
 class Network(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.input_shape = env.observation_space.shape
-        self.action_space = action_space
 
-        input_size = np.prod(env.observation_space.shape)
+        input_size = np.prod(observation_space)
         self.fc1 = nn.Linear(input_size, FC1_DIMS)
         self.fc2 = nn.Linear(FC1_DIMS, FC2_DIMS)
-        self.fc3 = nn.Linear(FC2_DIMS, self.action_space)
+        self.fc3 = nn.Linear(FC2_DIMS, action_space)
 
         self.optimizer = optim.Adam(self.parameters(), lr=LEARNING_RATE)
         self.loss = nn.MSELoss()
@@ -62,7 +65,7 @@ class ReplayBuffer:
     def __init__(self):
         self.mem_count = 0
         
-        input_size = np.prod(env.observation_space.shape)
+        input_size = np.prod(observation_space)
         self.states = np.zeros((MEM_SIZE, input_size),dtype=np.float32)
         self.actions = np.zeros(MEM_SIZE, dtype=np.int64)
         self.rewards = np.zeros(MEM_SIZE, dtype=np.float32)
@@ -150,12 +153,14 @@ for i in range(1, EPISODES):
     score = 0
 
     while True:
-        #env.render()
+        #env.render("ascii")
         action = agent.choose_action(state)
         state_, reward, done, info = env.step([action])
 
         food = state_[:, :, 0]
         snake = state_[:, :, 1]
+        #max_number = np.sum(snake)-5
+        #print("Max score:", max_number)
         temp = np.append(food, snake)
         state_ = temp
 
