@@ -2,7 +2,7 @@ import random
 from battlesnake_gym.snake_gym import BattlesnakeGym
 from battlesnake_gym.snake import Snake
 
-env = BattlesnakeGym(map_size=(11, 11), number_of_snakes=4)
+env = BattlesnakeGym(map_size=(11, 11), number_of_snakes=1)
 observation_space = env.observation_space.shape[0]
 action_space = env.action_space.n
 print(observation_space)
@@ -39,7 +39,7 @@ for episode in range(1, episodes+1):
         print("----------")
 
         done = done[0]
-        #score += reward
+        score += rewards[0]
     
     print(f"Episode: {episode}, Score: {score}")
 
