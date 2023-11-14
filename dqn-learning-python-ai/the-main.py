@@ -16,7 +16,7 @@ from battlesnake_gym.snake import Snake
 
 env = BattlesnakeGym(map_size=(11, 11), number_of_snakes=1)
 observation_space = env.observation_space.shape[0]
-action_space = env.action_space.n
+action_space = 4
 
 EPISODES = 1000
 LEARNING_RATE = 0.0001
@@ -40,9 +40,6 @@ class Network(torch.nn.Module):
     def __init__(self):
         super().__init__()
         self.input_shape = env.observation_space.shape
-        print("----------")
-        print(self.input_shape)
-        print("----------")
         self.action_space = action_space
 
         input_size = np.prod(env.observation_space.shape)
@@ -155,17 +152,16 @@ for i in range(1, EPISODES):
     while True:
         #env.render()
         action = agent.choose_action(state)
-        observation, reward, done, info = env.step([action])
+        state_, reward, done, info = env.step([action])
 
-        #observation = np.reshape(observation, [1, observation_space])
-        food = observation[:, :, 0]
-        snake = observation[:, :, 1]
+        food = state_[:, :, 0]
+        snake = state_[:, :, 1]
         temp = np.append(food, snake)
-        observation = temp
+        state_ = temp
 
-        agent.memory.add(state, action, reward[0], observation, done[0])
+        agent.memory.add(state, action, reward[0], state_, done[0])
         agent.learn()
-        state = observation
+        state = state_
         score += reward[0]
 
         if done[0]:
