@@ -142,6 +142,10 @@ class DQN_Solver:
     def returning_epsilon(self):
         return self.exploration_rate
 
+def save_model(model, filepath):
+    torch.save(model.state_dict(), filepath)
+    print(f"Model saved to {filepath}")
+
 agent = DQN_Solver()
 
 for i in range(1, EPISODES):
@@ -178,6 +182,9 @@ for i in range(1, EPISODES):
             
         episode_number.append(i)
         average_reward_number.append(average_reward/i)
+
+# Save the final model after training
+save_model(agent.network, "final_model.pth")
 
 plt.plot(episode_number, average_reward_number)
 plt.show()
