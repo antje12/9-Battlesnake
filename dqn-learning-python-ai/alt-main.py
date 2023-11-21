@@ -14,7 +14,7 @@ env = gym.make('CartPole-v1', render_mode="human")
 observation_space = env.observation_space.shape[0]
 action_space = env.action_space.n
 
-EPISODES = 1000
+EPISODES = 10
 LEARNING_RATE = 0.0001
 MEM_SIZE = 10000
 BATCH_SIZE = 64

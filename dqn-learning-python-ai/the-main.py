@@ -6,6 +6,8 @@ import math
 import gymnasium as gym
 import random
 import numpy as np
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
 import random
@@ -24,16 +26,16 @@ print(action_space)
 print("--------------------")
 
 EPISODES = 1000
-LEARNING_RATE = 0.0001
-MEM_SIZE = 10000
-BATCH_SIZE = 64
-GAMMA = 0.95
+LEARNING_RATE = 0.0005
+MEM_SIZE = 20000
+BATCH_SIZE = 128
+GAMMA = 0.98
 EXPLORATION_MAX = 1.0
-EXPLORATION_DECAY = 0.999
+EXPLORATION_DECAY = 0.85
 EXPLORATION_MIN = 0.001
 
-FC1_DIMS = 1024
-FC2_DIMS = 512
+FC1_DIMS = 256
+FC2_DIMS = 128
 DEVICE = torch.device("cpu")
 
 best_reward = 0
@@ -96,13 +98,18 @@ class ReplayBuffer:
         return states, actions, rewards, states_, dones
 
 class DQN_Solver:
-    def __init__(self):
+    def __init__(self, model=None):
         self.memory = ReplayBuffer()
         self.exploration_rate = EXPLORATION_MAX
-        self.network = Network()
+
+        if model is not None:
+            self.network = model
+        else:
+            self.network = Network()
 
     def choose_action(self, observation):
         if random.random() < self.exploration_rate:
+            #return random.randint(0, 0)
             return env.action_space[0].sample()
         
         state = torch.tensor(observation).float().detach()
@@ -146,7 +153,12 @@ def save_model(model, filepath):
     torch.save(model.state_dict(), filepath)
     print(f"Model saved to {filepath}")
 
-agent = DQN_Solver()
+
+loaded_model = Network()
+loaded_model.load_state_dict(torch.load("Solid_Snake.pth"))
+
+agent = DQN_Solver(model=loaded_model)
+len_sum = 0
 
 for i in range(1, EPISODES):
     state, reward, done, info = env.reset()
@@ -155,6 +167,7 @@ for i in range(1, EPISODES):
     temp = np.append(food, snake)
     state = temp
     score = 0
+
 
     while True:
         #env.render("ascii")
@@ -167,6 +180,7 @@ for i in range(1, EPISODES):
         #print("Max score:", max_number)
         temp = np.append(food, snake)
         state_ = temp
+        
 
         agent.memory.add(state, action, reward[0], state_, done[0])
         agent.learn()
@@ -176,15 +190,20 @@ for i in range(1, EPISODES):
         if done[0]:
             if score > best_reward:
                 best_reward = score
-            average_reward += score 
+            average_reward += score
+            #print ("Score: {}".format(max))
+            len_sum = len_sum + info["snake_max_len"][0]
+            #print("Avg. length: ", len_sum/(i+1))
             print("Episode {} Average Reward {} Best Reward {} Last Reward {} Epsilon {}".format(i, average_reward/i, best_reward, score, agent.returning_epsilon()))
             break
             
         episode_number.append(i)
         average_reward_number.append(average_reward/i)
 
+
+print("Avg. length: ", len_sum/(i+1))
 # Save the final model after training
 save_model(agent.network, "final_model.pth")
 
 plt.plot(episode_number, average_reward_number)
-plt.show()
+#plt.show()
