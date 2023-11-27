@@ -1,18 +1,18 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-import math
-import gymnasium as gym
-import random
-import numpy as np
-import matplotlib
-matplotlib.use('TkAgg')
-import matplotlib.pyplot as plt
-
-import random
-from battlesnake_gym.snake_gym import BattlesnakeGym
-from battlesnake_gym.snake import Snake
+import math 
+import random 
+ 
+import numpy as np 
+import matplotlib 
+matplotlib.use('TkAgg') 
+import matplotlib.pyplot as plt 
+ 
+import torch 
+import torch.nn as nn 
+import torch.nn.functional as F 
+import torch.optim as optim 
+ 
+from battlesnake_gym.snake_gym import BattlesnakeGym 
+from battlesnake_gym.snake import Snake 
 
 # taken from https://andrew-gordienko.medium.com/reinforcement-learning-dqn-w-pytorch-7c6faad3d1e
 
@@ -156,12 +156,13 @@ def save_model(model, filepath):
     torch.save(model.state_dict(), filepath)
     print(f"Model saved to {filepath}")
 
-
-loaded_model = Network()
-loaded_model.load_state_dict(torch.load("Solid_Snake.pth"))
-
-agent = DQN_Solver(model=loaded_model)
-len_sum = 0
+agent = DQN_Solver() 
+ 
+#loaded_model = Network() 
+#loaded_model.load_state_dict(torch.load("Solid_Snake.pth")) 
+#agent = DQN_Solver(model=loaded_model) 
+ 
+len_sum = 0 
 
 for i in range(1, EPISODES):
     state, reward, done, info = env.reset()
@@ -209,4 +210,4 @@ print("Avg. length: ", len_sum/(i+1))
 save_model(agent.network, "final_model.pth")
 
 plt.plot(episode_number, average_reward_number)
-#plt.show()
+plt.show()
