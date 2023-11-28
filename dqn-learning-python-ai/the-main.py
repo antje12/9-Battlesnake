@@ -40,6 +40,7 @@ HIDDEN_LAYER1_DIMS = 256
 HIDDEN_LAYER2_DIMS = 128
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("Device:", DEVICE)
 
 best_reward = 0
 average_reward = 0
@@ -156,15 +157,17 @@ def save_model(model, filepath):
     torch.save(model.state_dict(), filepath)
     print(f"Model saved to {filepath}")
 
-agent = DQN_Solver() 
- 
-#loaded_model = Network() 
-#loaded_model.load_state_dict(torch.load("Solid_Snake.pth")) 
-#agent = DQN_Solver(model=loaded_model) 
+def load_model(filepath): 
+    model = Network() 
+    model.load_state_dict(torch.load(filepath)) 
+    print(f"Model loaded from {filepath}") 
+    return model 
+
+agent = DQN_Solver()
  
 len_sum = 0 
 
-for i in range(1, EPISODES):
+for i in range(1, EPISODES+1):
     state, reward, done, info = env.reset()
     food = state[:, :, 0]
     snake = state[:, :, 1]
