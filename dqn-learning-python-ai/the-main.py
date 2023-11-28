@@ -165,11 +165,11 @@ def load_model(filepath):
 def extract_state(me, food): #, enemy1, enemy2, enemy3):
     map = np.zeros((11, 11), dtype=int)
 
-    print("-----------------------")
-    print("me")
-    print(me)
-    print("food")
-    print(food)
+    #print("-----------------------")
+    #print("me")
+    #print(me)
+    #print("food")
+    #print(food)
 
     for x in range(11):
         for y in range(11):
@@ -185,11 +185,10 @@ def extract_state(me, food): #, enemy1, enemy2, enemy3):
             if cell_value > 0:
                 map[x,y] = 2
 
-    print("merged")
-    print(map)
-    print("-----------------------")
-    map.flatten()
-    return map
+    #print("merged")
+    #print(map)
+    #print("-----------------------")
+    return map.flatten()
 
 agent = DQN_Solver()
  
