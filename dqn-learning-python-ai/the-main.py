@@ -18,11 +18,11 @@ from battlesnake_gym.snake import Snake
 
 env = BattlesnakeGym(map_size=(11, 11), number_of_snakes=1)
 observation_space = env.observation_space.shape
-print("Observation space:")
-print(observation_space)
+print("Observation space:", observation_space)
 action_space = env.action_space[0].n
-print("Action space:")
-print(action_space)
+print("Action space:", action_space)
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print("Device:", DEVICE)
 print("--------------------")
 
 EPISODES = 1000
@@ -39,8 +39,6 @@ EXPLORATION_MIN = 0.001
 HIDDEN_LAYER1_DIMS = 256
 HIDDEN_LAYER2_DIMS = 128
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print("Device:", DEVICE)
 
 best_reward = 0
 average_reward = 0
@@ -51,6 +49,7 @@ class Network(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
+        #input_size = 11*11
         input_size = np.prod(observation_space)
         self.fc1 = nn.Linear(input_size, HIDDEN_LAYER1_DIMS)
         self.fc2 = nn.Linear(HIDDEN_LAYER1_DIMS, HIDDEN_LAYER2_DIMS)
@@ -64,13 +63,13 @@ class Network(torch.nn.Module):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
-
         return x
 
 class ReplayBuffer:
     def __init__(self):
         self.mem_count = 0
         
+        #input_size = 11*11
         input_size = np.prod(observation_space)
         self.states = np.zeros((MEM_SIZE, input_size),dtype=np.float32)
         self.actions = np.zeros(MEM_SIZE, dtype=np.int64)
@@ -163,6 +162,35 @@ def load_model(filepath):
     print(f"Model loaded from {filepath}") 
     return model 
 
+def extract_state(me, food): #, enemy1, enemy2, enemy3):
+    map = np.zeros((11, 11), dtype=int)
+
+    print("-----------------------")
+    print("me")
+    print(me)
+    print("food")
+    print(food)
+
+    for x in range(11):
+        for y in range(11):
+            cell_value = me[x][y]
+            if cell_value == 5:
+                map[x,y] = 3
+            elif cell_value > 0:
+                map[x,y] = 1
+    
+    for x in range(11):
+        for y in range(11):
+            cell_value = food[x][y]
+            if cell_value > 0:
+                map[x,y] = 2
+
+    print("merged")
+    print(map)
+    print("-----------------------")
+    map.flatten()
+    return map
+
 agent = DQN_Solver()
  
 len_sum = 0 
@@ -171,10 +199,12 @@ for i in range(1, EPISODES+1):
     state, reward, done, info = env.reset()
     food = state[:, :, 0]
     snake = state[:, :, 1]
+    #temp = extract_state(snake, food)
     temp = np.append(food, snake)
     state = temp
     score = 0
 
+    backup_snake = snake
 
     while True:
         #env.render("ascii")
@@ -185,9 +215,9 @@ for i in range(1, EPISODES+1):
         snake = state_[:, :, 1]
         #max_number = np.sum(snake)-5
         #print("Max score:", max_number)
+        #temp = extract_state(snake, food)
         temp = np.append(food, snake)
         state_ = temp
-        
 
         agent.memory.add(state, action, reward[0], state_, done[0])
         agent.learn()
@@ -199,16 +229,19 @@ for i in range(1, EPISODES+1):
                 best_reward = score
             average_reward += score
             #print ("Score: {}".format(max))
-            len_sum = len_sum + info["snake_max_len"][0]
+            np_snake = np.array(backup_snake)
+            snake_length = np.sum(np_snake)-4
+            len_sum = len_sum + snake_length
             #print("Avg. length: ", len_sum/(i+1))
             print("Episode {} Average Reward {} Best Reward {} Last Reward {} Epsilon {}".format(i, average_reward/i, best_reward, score, agent.returning_epsilon()))
             break
-            
+
+        backup_snake = snake
+
         episode_number.append(i)
         average_reward_number.append(average_reward/i)
 
-
-print("Avg. length: ", len_sum/(i+1))
+print("Avg. length: ", len_sum/EPISODES)
 # Save the final model after training
 save_model(agent.network, "final_model.pth")
 

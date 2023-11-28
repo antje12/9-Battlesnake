@@ -30,7 +30,7 @@ class SimpleRewards(Rewards):
                             "won": 100,
                             "died": -10,
                             "ate_another_snake": 0,
-                            "hit_wall": -10,
+                            "hit_wall": -1,
                             "hit_other_snake": -1,
                             "hit_self": -10,
                             "was_eaten": 0,
