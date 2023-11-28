@@ -158,7 +158,7 @@ def save_model(model, filepath):
 
 
 loaded_model = Network()
-loaded_model.load_state_dict(torch.load("Solid_Snake.pth"))
+loaded_model.load_state_dict(torch.load("final_model.pth"))
 
 agent = DQN_Solver(model=loaded_model)
 len_sum = 0
