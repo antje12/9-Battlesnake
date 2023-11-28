@@ -1,5 +1,6 @@
 import math 
-import random 
+import random
+from re import S 
  
 import numpy as np 
 import matplotlib 
@@ -32,9 +33,9 @@ MEM_SIZE = 20000
 BATCH_SIZE = 128
 GAMMA = 0.98
 
-EXPLORATION_MAX = 1.0
-EXPLORATION_DECAY = 0.85
-EXPLORATION_MIN = 0.001
+EXPLORATION_MAX = 0.0
+EXPLORATION_DECAY = 0.99
+EXPLORATION_MIN = 0.00
 
 HIDDEN_LAYER1_DIMS = 256
 HIDDEN_LAYER2_DIMS = 128
@@ -190,8 +191,9 @@ def extract_state(me, food): #, enemy1, enemy2, enemy3):
     #print("-----------------------")
     return map.flatten()
 
-agent = DQN_Solver()
- 
+#agent = DQN_Solver()
+agent = DQN_Solver(load_model("one_reward_86.pth"))
+
 len_sum = 0 
 
 for i in range(1, EPISODES+1):
@@ -206,7 +208,7 @@ for i in range(1, EPISODES+1):
     backup_snake = snake
 
     while True:
-        #env.render("ascii")
+        env.render("ascii")
         action = agent.choose_action(state)
         state_, reward, done, info = env.step([action])
 
@@ -219,14 +221,17 @@ for i in range(1, EPISODES+1):
         state_ = temp
 
         agent.memory.add(state, action, reward[0], state_, done[0])
-        agent.learn()
+        #agent.learn()
         state = state_
         score += reward[0]
+
+        #print(reward[0])
 
         if done[0]:
             if score > best_reward:
                 best_reward = score
             average_reward += score
+
             #print ("Score: {}".format(max))
             np_snake = np.array(backup_snake)
             snake_length = np.sum(np_snake)-4
