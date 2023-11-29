@@ -16,7 +16,7 @@ from battlesnake_gym.snake import Snake
  
 # taken from https://andrew-gordienko.medium.com/reinforcement-learning-dqn-w-pytorch-7c6faad3d1e 
  
-# 11*11 (height * width) sized map with 1 value in each cell
+# 11*11 (height * width) sized map with 3 values in each cell
 features = 3
 height = 11
 width = 11
@@ -43,8 +43,8 @@ EXPLORATION_MIN = 0.01
 HIDDEN_LAYER1_DIMS = 32
 HIDDEN_LAYER2_DIMS = 64
 
-HIDDEN_LAYER3_DIMS = 256
-HIDDEN_LAYER4_DIMS = 128
+HIDDEN_LAYER3_DIMS = 1024
+HIDDEN_LAYER4_DIMS = 512
  
 best_reward = 0 
 average_reward = 0 
@@ -57,7 +57,7 @@ class Network(torch.nn.Module):
         super().__init__() 
         input_channels = features  # Number of channels in the input (e.g., features for each cell)
         
-        # 2D array processing (spatial local 3*3 info processing)
+        # 2D array processing (spatial local 5*5 info processing)
         self.conv1 = nn.Conv2d(input_channels, HIDDEN_LAYER1_DIMS, kernel_size=5, stride=1, padding=2)
         self.conv2 = nn.Conv2d(HIDDEN_LAYER1_DIMS, HIDDEN_LAYER2_DIMS, kernel_size=5, stride=1, padding=2)
         
@@ -187,7 +187,7 @@ def extract_state(me, food):
             if cell_food > 0:  # food
                 map_array[x, y, 2] = 1  # Assigning value 2 for food
     # Add batch dimension
-    map_array = map_array.reshape(3, 11, 11)
+    map_array = map_array.reshape(features, height, width)
     return map_array
  
 agent = DQN_Solver() 
