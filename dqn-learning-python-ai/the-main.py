@@ -17,8 +17,11 @@ from battlesnake_gym.snake import Snake
 # taken from https://andrew-gordienko.medium.com/reinforcement-learning-dqn-w-pytorch-7c6faad3d1e 
  
 env = BattlesnakeGym(map_size=(11, 11), number_of_snakes=1) 
-# 11*11 sized map with 4 possible values in each cell 
-observation_space = (11, 11, 4) 
+# 11*11 (height * width) sized map with 4 possible values in each cell
+channels = 4
+height = 11
+width = 11
+observation_space = (channels, height, width) 
 print("Observation space:", observation_space) 
 action_space = 4 
 print("Action space:", action_space) 
@@ -48,34 +51,35 @@ average_reward_number = []
 class Network(torch.nn.Module): 
     def __init__(self): 
         super().__init__() 
- 
-        #input_size = 11*11 
-        input_size = np.prod(observation_space)  # Change this line to match the input size 
-        self.fc1 = nn.Linear(input_size, HIDDEN_LAYER1_DIMS) 
-        self.fc2 = nn.Linear(HIDDEN_LAYER1_DIMS, HIDDEN_LAYER2_DIMS) 
-        self.fc3 = nn.Linear(HIDDEN_LAYER2_DIMS, action_space) 
- 
+        input_channels = 4  # Number of channels in the input (e.g., features for each cell)
+        self.conv1 = nn.Conv2d(input_channels, 16, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1)
+        self.fc3 = nn.Linear(32 * 11 * 11, HIDDEN_LAYER1_DIMS) 
+        self.fc4 = nn.Linear(HIDDEN_LAYER1_DIMS, HIDDEN_LAYER2_DIMS) 
+        self.fc5 = nn.Linear(HIDDEN_LAYER2_DIMS, action_space) 
         self.optimizer = optim.Adam(self.parameters(), lr=LEARNING_RATE) 
         self.loss = nn.MSELoss() 
         self.to(DEVICE) 
-     
+    
     def forward(self, x): 
-        #x = x.flatten(start_dim=1) 
-        x = F.relu(self.fc1(x)) 
-        x = F.relu(self.fc2(x)) 
-        x = self.fc3(x) 
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = x.view(-1, 32 * 11 * 11)  # Flatten the output of the convolutional layers
+        x = F.relu(self.fc3(x)) 
+        x = F.relu(self.fc4(x)) 
+        x = self.fc5(x) 
         return x 
  
 class ReplayBuffer: 
     def __init__(self): 
         self.mem_count = 0 
          
-        #input_size = 11*11 
+        #input_size = 11*11
         input_size = np.prod(observation_space) 
-        self.states = np.zeros((MEM_SIZE, input_size),dtype=np.float32) 
+        self.states = np.zeros((MEM_SIZE, *observation_space),dtype=np.float32) 
         self.actions = np.zeros(MEM_SIZE, dtype=np.int64) 
         self.rewards = np.zeros(MEM_SIZE, dtype=np.float32) 
-        self.states_ = np.zeros((MEM_SIZE, input_size),dtype=np.float32) 
+        self.states_ = np.zeros((MEM_SIZE, *observation_space),dtype=np.float32) 
         self.dones = np.zeros(MEM_SIZE, dtype=bool) 
      
     def add(self, state, action, reward, state_, done): 
@@ -174,7 +178,9 @@ def extract_state(me, food):
             cell_food = food[x][y] 
             if cell_food > 0: # food 
                 map[x,y,2] = 1 
-    return map.flatten()
+    # Add batch dimension and channel dimension
+    map = map.transpose((2, 0, 1)).reshape(4, 11, 11)
+    return map.astype(np.float32)
  
 agent = DQN_Solver() 
   
