@@ -50,6 +50,7 @@ best_reward = 0
 average_reward = 0 
 episode_number = [] 
 average_reward_number = [] 
+average_length_number = [] 
  
 class Network(torch.nn.Module): 
     def __init__(self): 
@@ -197,8 +198,7 @@ for i in range(1, EPISODES+1):
     state, reward, done, info = env.reset() 
     food = state[:, :, 0] 
     snake = state[:, :, 1] 
-    state = extract_state(snake, food) 
-    #state = np.append(food, snake) 
+    state = extract_state(snake, food)
     score = 0 
  
     backup_snake = snake 
@@ -212,9 +212,7 @@ for i in range(1, EPISODES+1):
         snake = state_[:, :, 1] 
         #max_number = np.sum(snake)-5 
         #print("Max score:", max_number) 
-        state_ = extract_state(snake, food) 
-        #state_ = np.append(food, snake) 
- 
+        state_ = extract_state(snake, food)
         agent.memory.add(state, action, reward[0], state_, done[0]) 
         agent.learn() 
         state = state_ 
@@ -227,7 +225,7 @@ for i in range(1, EPISODES+1):
             #print ("Score: {}".format(max)) 
             np_snake = np.array(backup_snake) 
             snake_length = np.sum(np_snake)-4 
-            len_sum = len_sum + snake_length 
+            len_sum += snake_length 
             #print("Avg. length: ", len_sum/(i+1)) 
             print("Episode {} Average Reward {} Best Reward {} Last Reward {} Epsilon {}".format(i, average_reward/i, best_reward, score, agent.returning_epsilon())) 
             break 
@@ -236,10 +234,15 @@ for i in range(1, EPISODES+1):
  
         episode_number.append(i) 
         average_reward_number.append(average_reward/i) 
+        average_length_number.append(len_sum/i) 
  
 print("Avg. length: ", len_sum/EPISODES) 
 # Save the final model after training 
 save_model(agent.network, "final_model.pth") 
  
-plt.plot(episode_number, average_reward_number) 
+plt.plot(episode_number, average_reward_number, label='Average Reward') 
+plt.plot(episode_number, average_length_number, label='Average Length') 
+plt.xlabel('Episode Number')
+plt.ylabel('Value')
+plt.legend()
 plt.show()
