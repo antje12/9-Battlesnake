@@ -16,12 +16,12 @@ from battlesnake_gym.snake import Snake
  
 # taken from https://andrew-gordienko.medium.com/reinforcement-learning-dqn-w-pytorch-7c6faad3d1e 
  
-env = BattlesnakeGym(map_size=(11, 11), number_of_snakes=1) 
-# 11*11 (height * width) sized map with 4 possible values in each cell
-channels = 4
+# 11*11 (height * width) sized map with 1 value in each cell
+features = 1
 height = 11
 width = 11
-observation_space = (channels, height, width) 
+env = BattlesnakeGym(map_size=(height, width), number_of_snakes=1) 
+observation_space = (features, height, width) 
 print("Observation space:", observation_space) 
 action_space = 4 
 print("Action space:", action_space) 
@@ -40,8 +40,11 @@ EXPLORATION_MAX = 1.0
 EXPLORATION_DECAY = 0.995
 EXPLORATION_MIN = 0.01
 
-HIDDEN_LAYER1_DIMS = 256
-HIDDEN_LAYER2_DIMS = 128
+HIDDEN_LAYER1_DIMS = 16
+HIDDEN_LAYER2_DIMS = 32
+
+HIDDEN_LAYER3_DIMS = 256
+HIDDEN_LAYER4_DIMS = 128
  
 best_reward = 0 
 average_reward = 0 
@@ -51,12 +54,18 @@ average_reward_number = []
 class Network(torch.nn.Module): 
     def __init__(self): 
         super().__init__() 
-        input_channels = 4  # Number of channels in the input (e.g., features for each cell)
-        self.conv1 = nn.Conv2d(input_channels, 16, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1)
-        self.fc3 = nn.Linear(32 * 11 * 11, HIDDEN_LAYER1_DIMS) 
-        self.fc4 = nn.Linear(HIDDEN_LAYER1_DIMS, HIDDEN_LAYER2_DIMS) 
-        self.fc5 = nn.Linear(HIDDEN_LAYER2_DIMS, action_space) 
+        input_channels = features  # Number of channels in the input (e.g., features for each cell)
+        
+        # 2D array processing (spatial local 3*3 info processing)
+        self.conv1 = nn.Conv2d(input_channels, HIDDEN_LAYER1_DIMS, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(HIDDEN_LAYER1_DIMS, HIDDEN_LAYER2_DIMS, kernel_size=3, stride=1, padding=1)
+        
+        # 1D array processing (global info processing)
+        self.fc3 = nn.Linear(HIDDEN_LAYER2_DIMS * 11 * 11, HIDDEN_LAYER3_DIMS) 
+        self.fc4 = nn.Linear(HIDDEN_LAYER3_DIMS, HIDDEN_LAYER4_DIMS) 
+
+        self.out = nn.Linear(HIDDEN_LAYER4_DIMS, action_space) 
+        
         self.optimizer = optim.Adam(self.parameters(), lr=LEARNING_RATE) 
         self.loss = nn.MSELoss() 
         self.to(DEVICE) 
@@ -67,19 +76,17 @@ class Network(torch.nn.Module):
         x = x.view(-1, 32 * 11 * 11)  # Flatten the output of the convolutional layers
         x = F.relu(self.fc3(x)) 
         x = F.relu(self.fc4(x)) 
-        x = self.fc5(x) 
+        x = self.out(x) 
         return x 
  
 class ReplayBuffer: 
     def __init__(self): 
         self.mem_count = 0 
-         
-        #input_size = 11*11
-        input_size = np.prod(observation_space) 
-        self.states = np.zeros((MEM_SIZE, *observation_space),dtype=np.float32) 
+        
+        self.states = np.zeros((MEM_SIZE, *observation_space),dtype=np.int64) 
         self.actions = np.zeros(MEM_SIZE, dtype=np.int64) 
         self.rewards = np.zeros(MEM_SIZE, dtype=np.float32) 
-        self.states_ = np.zeros((MEM_SIZE, *observation_space),dtype=np.float32) 
+        self.states_ = np.zeros((MEM_SIZE, *observation_space),dtype=np.int64) 
         self.dones = np.zeros(MEM_SIZE, dtype=bool) 
      
     def add(self, state, action, reward, state_, done): 
@@ -166,21 +173,21 @@ def load_model(filepath):
     print(f"Model loaded from {filepath}")  
     return model  
  
-def extract_state(me, food): 
-    map = np.zeros((11, 11, 4), dtype=int)  # 4 features (empty, obstacle, food, player) 
-    for x in range(11): 
-        for y in range(11): 
-            cell_me = me[x][y] 
-            if cell_me == 5: # my head 
-                map[x,y,3] = 1 
-            elif cell_me > 0: # my body 
-                map[x,y,1] = 1 
-            cell_food = food[x][y] 
-            if cell_food > 0: # food 
-                map[x,y,2] = 1 
-    # Add batch dimension and channel dimension
-    map = map.transpose((2, 0, 1)).reshape(4, 11, 11)
-    return map.astype(np.float32)
+def extract_state(me, food):
+    map_array = np.zeros((11, 11), dtype=int)  # 2D array
+    for x in range(11):
+        for y in range(11):
+            cell_me = me[x][y]
+            if cell_me == 5:  # my head
+                map_array[x, y] = 3  # Assigning value 3 for the player's head
+            elif cell_me > 0:  # my body
+                map_array[x, y] = 1  # Assigning value 1 for the player's body
+            cell_food = food[x][y]
+            if cell_food > 0:  # food
+                map_array[x, y] = 2  # Assigning value 2 for food
+    # Add batch dimension
+    map_array = map_array.reshape(1, 11, 11)
+    return map_array
  
 agent = DQN_Solver() 
   
