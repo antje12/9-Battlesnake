@@ -84,10 +84,10 @@ class ReplayBuffer:
     def __init__(self): 
         self.mem_count = 0 
         
-        self.states = np.zeros((MEM_SIZE, *observation_space),dtype=np.int64) 
+        self.states = np.zeros((MEM_SIZE, *observation_space),dtype=np.float32) 
         self.actions = np.zeros(MEM_SIZE, dtype=np.int64) 
         self.rewards = np.zeros(MEM_SIZE, dtype=np.float32) 
-        self.states_ = np.zeros((MEM_SIZE, *observation_space),dtype=np.int64) 
+        self.states_ = np.zeros((MEM_SIZE, *observation_space),dtype=np.float32) 
         self.dones = np.zeros(MEM_SIZE, dtype=bool) 
      
     def add(self, state, action, reward, state_, done): 
@@ -180,12 +180,12 @@ def extract_state(me, food):
         for y in range(11):
             cell_me = me[x][y]
             if cell_me == 5:  # my head
-                map_array[x, y] = 3  # Assigning value 3 for the player's head
+                map_array[x, y] = 3 / 3  # Assigning value 3 for the player's head
             elif cell_me > 0:  # my body
-                map_array[x, y] = 1  # Assigning value 1 for the player's body
+                map_array[x, y] = 1 / 3  # Assigning value 1 for the player's body
             cell_food = food[x][y]
             if cell_food > 0:  # food
-                map_array[x, y] = 2  # Assigning value 2 for food
+                map_array[x, y] = 2 / 3  # Assigning value 2 for food
     # Add batch dimension
     map_array = map_array.reshape(1, 11, 11)
     return map_array
