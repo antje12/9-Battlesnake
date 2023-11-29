@@ -62,7 +62,7 @@ class Network(torch.nn.Module):
         self.conv2 = nn.Conv2d(HIDDEN_LAYER1_DIMS, HIDDEN_LAYER2_DIMS, kernel_size=3, stride=1, padding=1)
         
         # 1D array processing (global info processing)
-        self.fc3 = nn.Linear(HIDDEN_LAYER2_DIMS * 11 * 11, HIDDEN_LAYER3_DIMS) 
+        self.fc3 = nn.Linear(HIDDEN_LAYER2_DIMS * height * width, HIDDEN_LAYER3_DIMS) 
         self.fc4 = nn.Linear(HIDDEN_LAYER3_DIMS, HIDDEN_LAYER4_DIMS) 
 
         self.out = nn.Linear(HIDDEN_LAYER4_DIMS, action_space) 
@@ -74,7 +74,7 @@ class Network(torch.nn.Module):
     def forward(self, x): 
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
-        x = x.view(-1, 32 * 11 * 11)  # Flatten the output of the convolutional layers
+        x = x.view(-1, HIDDEN_LAYER2_DIMS * height * width)  # Flatten the output of the convolutional layers
         x = F.relu(self.fc3(x)) 
         x = F.relu(self.fc4(x)) 
         x = self.out(x) 
