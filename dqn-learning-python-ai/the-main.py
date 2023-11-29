@@ -17,7 +17,7 @@ from battlesnake_gym.snake import Snake
 # taken from https://andrew-gordienko.medium.com/reinforcement-learning-dqn-w-pytorch-7c6faad3d1e 
  
 # 11*11 (height * width) sized map with 1 value in each cell
-features = 1
+features = 3
 height = 11
 width = 11
 env = BattlesnakeGym(map_size=(height, width), number_of_snakes=1) 
@@ -40,8 +40,8 @@ EXPLORATION_MAX = 1.0
 EXPLORATION_DECAY = 0.995
 EXPLORATION_MIN = 0.01
 
-HIDDEN_LAYER1_DIMS = 16
-HIDDEN_LAYER2_DIMS = 32
+HIDDEN_LAYER1_DIMS = 32
+HIDDEN_LAYER2_DIMS = 64
 
 HIDDEN_LAYER3_DIMS = 256
 HIDDEN_LAYER4_DIMS = 128
@@ -58,8 +58,8 @@ class Network(torch.nn.Module):
         input_channels = features  # Number of channels in the input (e.g., features for each cell)
         
         # 2D array processing (spatial local 3*3 info processing)
-        self.conv1 = nn.Conv2d(input_channels, HIDDEN_LAYER1_DIMS, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(HIDDEN_LAYER1_DIMS, HIDDEN_LAYER2_DIMS, kernel_size=3, stride=1, padding=1)
+        self.conv1 = nn.Conv2d(input_channels, HIDDEN_LAYER1_DIMS, kernel_size=5, stride=1, padding=2)
+        self.conv2 = nn.Conv2d(HIDDEN_LAYER1_DIMS, HIDDEN_LAYER2_DIMS, kernel_size=5, stride=1, padding=2)
         
         # 1D array processing (global info processing)
         self.fc3 = nn.Linear(HIDDEN_LAYER2_DIMS * height * width, HIDDEN_LAYER3_DIMS) 
@@ -84,10 +84,10 @@ class ReplayBuffer:
     def __init__(self): 
         self.mem_count = 0 
         
-        self.states = np.zeros((MEM_SIZE, *observation_space),dtype=np.float32) 
+        self.states = np.zeros((MEM_SIZE, *observation_space),dtype=np.int64) 
         self.actions = np.zeros(MEM_SIZE, dtype=np.int64) 
         self.rewards = np.zeros(MEM_SIZE, dtype=np.float32) 
-        self.states_ = np.zeros((MEM_SIZE, *observation_space),dtype=np.float32) 
+        self.states_ = np.zeros((MEM_SIZE, *observation_space),dtype=np.int64) 
         self.dones = np.zeros(MEM_SIZE, dtype=bool) 
      
     def add(self, state, action, reward, state_, done): 
@@ -175,19 +175,19 @@ def load_model(filepath):
     return model  
  
 def extract_state(me, food):
-    map_array = np.zeros((11, 11), dtype=int)  # 2D array
+    map_array = np.zeros((11, 11, 3), dtype=int)  # 2D array with 3 possible values pr. cell
     for x in range(11):
         for y in range(11):
             cell_me = me[x][y]
             if cell_me == 5:  # my head
-                map_array[x, y] = 3 / 3  # Assigning value 3 for the player's head
+                map_array[x, y, 0] = 1  # Assigning value 3 for the player's head
             elif cell_me > 0:  # my body
-                map_array[x, y] = 1 / 3  # Assigning value 1 for the player's body
+                map_array[x, y, 1] = 1  # Assigning value 1 for the player's body
             cell_food = food[x][y]
             if cell_food > 0:  # food
-                map_array[x, y] = 2 / 3  # Assigning value 2 for food
+                map_array[x, y, 2] = 1  # Assigning value 2 for food
     # Add batch dimension
-    map_array = map_array.reshape(1, 11, 11)
+    map_array = map_array.reshape(3, 11, 11)
     return map_array
  
 agent = DQN_Solver() 
@@ -240,9 +240,9 @@ print("Avg. length: ", len_sum/EPISODES)
 # Save the final model after training 
 save_model(agent.network, "final_model.pth") 
  
-plt.plot(episode_number, average_reward_number, label='Average Reward') 
-plt.plot(episode_number, average_length_number, label='Average Length') 
-plt.xlabel('Episode Number')
-plt.ylabel('Value')
-plt.legend()
-plt.show()
+#plt.plot(episode_number, average_reward_number, label='Average Reward') 
+#plt.plot(episode_number, average_length_number, label='Average Length') 
+#plt.xlabel('Episode Number')
+#plt.ylabel('Value')
+#plt.legend()
+#plt.show()
