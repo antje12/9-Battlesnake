@@ -46,12 +46,6 @@ HIDDEN_LAYER2_DIMS = 128
 HIDDEN_LAYER3_DIMS = 512
 HIDDEN_LAYER4_DIMS = 256
  
-best_reward = 0 
-average_reward = 0 
-episode_number = [] 
-average_reward_number = [] 
-average_length_number = [] 
- 
 class Network(torch.nn.Module): 
     def __init__(self): 
         super().__init__() 
@@ -192,7 +186,13 @@ def extract_state(me, food):
  
 agent = DQN_Solver() 
   
-len_sum = 0  
+best_reward = 0 
+best_length = 0 
+average_reward = 0 
+average_length = 0  
+episode_number = [] 
+average_reward_number = [] 
+average_length_number = []
  
 for i in range(1, EPISODES+1): 
     state, reward, done, info = env.reset() 
@@ -222,21 +222,23 @@ for i in range(1, EPISODES+1):
             if score > best_reward: 
                 best_reward = score 
             average_reward += score 
-            #print ("Score: {}".format(max)) 
+            
             np_snake = np.array(backup_snake) 
             snake_length = np.sum(np_snake)-4 
-            len_sum += snake_length 
-            #print("Avg. length: ", len_sum/(i+1)) 
-            print("Episode {} Average Reward {} Best Reward {} Last Reward {} Epsilon {}".format(i, average_reward/i, best_reward, score, agent.returning_epsilon())) 
+            if snake_length > best_length: 
+                best_length = snake_length 
+            average_length += snake_length 
+            
+            print("Episode {} Avg. Reward {} Avg. Length {} Best Reward {} Best Length {} Last Reward {} Last Length {} Explore {}"
+                  .format(i, round(average_reward/i, 3), round(average_length/i, 3), best_reward, best_length, score, snake_length, agent.returning_epsilon())) 
             break 
  
         backup_snake = snake 
  
         episode_number.append(i) 
         average_reward_number.append(average_reward/i) 
-        average_length_number.append(len_sum/i) 
- 
-print("Avg. length: ", len_sum/EPISODES) 
+        average_length_number.append(average_length/i) 
+
 # Save the final model after training 
 save_model(agent.network, "final_model.pth") 
  
