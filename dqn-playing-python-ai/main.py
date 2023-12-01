@@ -55,10 +55,10 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Hyperparameter
 LEARNING_RATE = 0.0005 
-HIDDEN_LAYER1_DIMS = 32
-HIDDEN_LAYER2_DIMS = 64
-HIDDEN_LAYER3_DIMS = 256
-HIDDEN_LAYER4_DIMS = 128
+HIDDEN_LAYER1_DIMS = 64
+HIDDEN_LAYER2_DIMS = 128
+HIDDEN_LAYER3_DIMS = 512
+HIDDEN_LAYER4_DIMS = 256
 
 # Agent Code
 class Network(torch.nn.Module): 
@@ -138,19 +138,19 @@ def extract_state(my_head, foods, hazards, opponents):
     # Danger cells
     for oponent in opponents: # Includes me
         for part in oponent["body"]:
-            x, y = part["x"], part["y"]
+            x, y = height - 1 - part["y"], part["x"] # convert from official to gym coords
             map_array[x, y, 1] = 1
     for hazard in hazards:
-        x, y = hazard["x"], hazard["y"]
+        x, y = height - 1 - hazard["y"], hazard["x"] # convert from official to gym coords
         map_array[x, y, 1] = 1
 
     # Food cells
     for  food in foods:
-        x, y = food["x"], food["y"]
+        x, y = height - 1 - food["y"], food["x"] # convert from official to gym coords
         map_array[x, y, 2] = 1
 
     # Player cell
-    x, y = my_head["x"], my_head["y"]
+    x, y = height - 1 - my_head["y"], my_head["x"] # convert from official to gym coords
     map_array[x, y, 0] = 1 # Set head
     map_array[x, y, 1] = 0 # Clear dangers
     map_array[x, y, 2] = 0 # Clear food
