@@ -229,7 +229,7 @@ for i in range(1, EPISODES+1):
                 best_length = snake_length 
             average_length += snake_length 
             
-            print("Episode {} Avg. Reward {} Avg. Length {} Best Reward {} Best Length {} Last Reward {} Last Length {} Explore {}"
+            print("Episode {} Avg Reward {} Avg Length {} Top Reward {} Top Length {} Last Reward {} Last Length {} Explore {}"
                   .format(i, round(average_reward/i, 3), round(average_length/i, 3), best_reward, best_length, score, snake_length, agent.returning_epsilon())) 
             break 
  
