@@ -29,23 +29,22 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Device:", DEVICE) 
 print("--------------------") 
 
-EPISODES = 1000 
-LEARNING_RATE = 0.0005 
- 
-MEM_SIZE = 20000 
-BATCH_SIZE = 100
-GAMMA = 0.85
- 
-EXPLORATION_MAX = 1.0 
-EXPLORATION_DECAY = 0.85 
-EXPLORATION_MIN = 0.001 
-
 HIDDEN_LAYER1_DIMS = 64
 HIDDEN_LAYER2_DIMS = 128
-
 HIDDEN_LAYER3_DIMS = 512
 HIDDEN_LAYER4_DIMS = 256
- 
+LEARNING_RATE = 0.0005
+
+MEM_SIZE = 20000
+BATCH_SIZE = 100
+
+EXPLORATION_MAX = 1.0
+EXPLORATION_DECAY = 0.995
+EXPLORATION_MIN = 0.001
+GAMMA = 0.85
+
+EPISODES = 10000
+
 class Network(torch.nn.Module): 
     def __init__(self): 
         super().__init__() 
@@ -198,7 +197,9 @@ average_length = 0
 episode_number = [] 
 average_reward_number = [] 
 average_length_number = []
- 
+
+SAVE_FREQUENCY = 500
+
 for i in range(1, EPISODES+1): 
     state, reward, done, info = env.reset() 
     food = state[:, :, 0] 
@@ -286,6 +287,10 @@ for i in range(1, EPISODES+1):
         episode_number.append(i) 
         average_reward_number.append(average_reward/i) 
         average_length_number.append(average_length/i) 
+
+    if i % SAVE_FREQUENCY == 0:
+        # Save the model every 500 episodes
+        save_model(agent.network, f"wip_model.pth")
 
 # Save the final model after training 
 save_model(agent.network, "final_model.pth") 
