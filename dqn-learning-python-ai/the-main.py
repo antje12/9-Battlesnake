@@ -188,7 +188,7 @@ def extract_state(me, food, enemy1, enemy2, enemy3):
     map_array = map_array.reshape(features, height, width)
     return map_array
  
-agent = DQN_Solver()
+agent = DQN_Solver(load_model("final_model.pth"))
   
 best_reward = 0 
 best_length = 0 
@@ -198,7 +198,7 @@ episode_number = []
 average_reward_number = [] 
 average_length_number = []
 
-SAVE_FREQUENCY = 500
+SAVE_FREQUENCY = 100
 
 for i in range(1, EPISODES+1): 
     state, reward, done, info = env.reset() 
@@ -290,7 +290,7 @@ for i in range(1, EPISODES+1):
 
     if i % SAVE_FREQUENCY == 0:
         # Save the model every 500 episodes
-        save_model(agent.network, f"wip_model.pth")
+        save_model(agent.network, f"wip/wip_model_{i}.pth")
 
 # Save the final model after training 
 save_model(agent.network, "final_model.pth") 
