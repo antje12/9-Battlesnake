@@ -43,7 +43,7 @@ EXPLORATION_DECAY = 0.995
 EXPLORATION_MIN = 0.001
 GAMMA = 0.85
 
-EPISODES = 10000
+EPISODES = 3000
 
 class Network(torch.nn.Module): 
     def __init__(self): 
@@ -293,7 +293,7 @@ for i in range(1, EPISODES+1):
         save_model(agent.network, f"wip/wip_model_{i}.pth")
 
 # Save the final model after training 
-save_model(agent.network, "final_model.pth") 
+save_model(agent.network, "final/final_model.pth") 
  
 #plt.plot(episode_number, average_reward_number, label='Average Reward') 
 #plt.plot(episode_number, average_length_number, label='Average Length') 

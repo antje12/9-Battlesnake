@@ -23,7 +23,7 @@ print("Observation space:", observation_space)
 action_space = 4 
 print("Action space:", action_space) 
 
-EPISODES = 1
+EPISODES = 1000
 
 # A* code start ====================================================
 class Node:
@@ -216,7 +216,7 @@ for i in range(1, EPISODES+1):
     backup_enemy3 = enemy3 
  
     while True: 
-        env.render("ascii") 
+        #env.render("ascii") 
         action1 = extract_move(snake, food, enemy1, enemy2, enemy3)
         action2 = extract_move(enemy1, food, snake, enemy2, enemy3)
         action3 = extract_move(enemy2, food, enemy1, snake, enemy3)
