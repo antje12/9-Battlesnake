@@ -13,9 +13,7 @@
 import random
 import typing
 
-import numpy as np  
-import matplotlib  
-matplotlib.use('TkAgg')  
+import numpy as np
   
 import torch  
 import torch.nn as nn  
