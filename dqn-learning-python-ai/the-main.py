@@ -20,7 +20,7 @@ from battlesnake_gym.snake import Snake
 features = 3
 height = 11
 width = 11
-env = BattlesnakeGym(map_size=(height, width), number_of_snakes=4) 
+env = BattlesnakeGym(map_size=(height, width), number_of_snakes=3) 
 observation_space = (features, height, width) 
 print("Observation space:", observation_space) 
 action_space = 4 
@@ -43,7 +43,7 @@ EXPLORATION_DECAY = 0.995
 EXPLORATION_MIN = 0.001
 GAMMA = 0.85
 
-EPISODES = 3000
+EPISODES = 1000
 
 class Network(torch.nn.Module): 
     def __init__(self): 
@@ -167,7 +167,7 @@ def load_model(filepath):
     print(f"Model loaded from {filepath}")  
     return model  
  
-def extract_state(me, food, enemy1, enemy2, enemy3):
+def extract_state(me, food, enemy1, enemy2): #, enemy3):
     map_array = np.zeros((11, 11, 3), dtype=int)  # 2D array with 3 possible values pr. cell
     for x in range(11):
         for y in range(11):
@@ -178,8 +178,8 @@ def extract_state(me, food, enemy1, enemy2, enemy3):
                 map_array[x, y, 1] = 1  # Assigning value 1 for the player's body
             cell_enemy1 = enemy1[x][y]
             cell_enemy2 = enemy2[x][y]
-            cell_enemy3 = enemy3[x][y]
-            if cell_enemy1 > 0 or cell_enemy2 > 0 or cell_enemy3 > 0:  # enemy
+            #cell_enemy3 = enemy3[x][y]
+            if cell_enemy1 > 0 or cell_enemy2 > 0: # or cell_enemy3 > 0:  # enemy
                 map_array[x, y, 1] = 1  # Assigning value 1 for the enemy's body
             cell_food = food[x][y]
             if cell_food > 0:  # food
@@ -188,7 +188,7 @@ def extract_state(me, food, enemy1, enemy2, enemy3):
     map_array = map_array.reshape(features, height, width)
     return map_array
  
-agent = DQN_Solver(load_model("final_model.pth"))
+agent = DQN_Solver(load_model("final/final_model.pth"))
   
 best_reward = 0 
 best_length = 0 
@@ -206,62 +206,62 @@ for i in range(1, EPISODES+1):
     snake = state[:, :, 1] 
     enemy1 = state[:, :, 2] 
     enemy2 = state[:, :, 3] 
-    enemy3 = state[:, :, 4] 
+    #enemy3 = state[:, :, 4] 
 
-    state1 = extract_state(snake, food, enemy1, enemy2, enemy3)
-    state2 = extract_state(enemy1, food, snake, enemy2, enemy3)
-    state3 = extract_state(enemy2, food, enemy1, snake, enemy3)
-    state4 = extract_state(enemy3, food, enemy1, enemy2, snake)
+    state1 = extract_state(snake, food, enemy1, enemy2) #, enemy3)
+    state2 = extract_state(enemy1, food, snake, enemy2) #, enemy3)
+    state3 = extract_state(enemy2, food, enemy1, snake) #, enemy3)
+    #state4 = extract_state(enemy3, food, enemy1, enemy2, snake)
 
     score1 = 0 
     score2 = 0 
     score3 = 0 
-    score4 = 0 
+    #score4 = 0 
  
     backup_snake = snake 
     backup_enemy1 = enemy1 
     backup_enemy2 = enemy2 
-    backup_enemy3 = enemy3 
+    #backup_enemy3 = enemy3 
  
     while True: 
         #env.render("ascii") 
         action1 = agent.choose_action(state1) 
         action2 = agent.choose_action(state2) 
         action3 = agent.choose_action(state3) 
-        action4 = agent.choose_action(state4) 
+        #action4 = agent.choose_action(state4) 
 
-        state_, reward, done, info = env.step([action1, action2, action3, action4]) 
+        state_, reward, done, info = env.step([action1, action2, action3]) #, action4]) 
  
         food = state_[:, :, 0] 
         snake = state_[:, :, 1] 
         enemy1 = state_[:, :, 2] 
         enemy2 = state_[:, :, 3] 
-        enemy3 = state_[:, :, 4] 
+        #enemy3 = state_[:, :, 4] 
         
-        state_1 = extract_state(snake, food, enemy1, enemy2, enemy3)
-        state_2 = extract_state(enemy1, food, snake, enemy2, enemy3)
-        state_3 = extract_state(enemy2, food, enemy1, snake, enemy3)
-        state_4 = extract_state(enemy3, food, enemy1, enemy2, snake)
+        state_1 = extract_state(snake, food, enemy1, enemy2) #, enemy3)
+        state_2 = extract_state(enemy1, food, snake, enemy2) #, enemy3)
+        state_3 = extract_state(enemy2, food, enemy1, snake) #, enemy3)
+        #state_4 = extract_state(enemy3, food, enemy1, enemy2, snake)
 
         agent.memory.add(state1, action1, reward[0], state_1, done[0]) 
         agent.memory.add(state2, action2, reward[1], state_2, done[1]) 
         agent.memory.add(state3, action3, reward[2], state_3, done[2]) 
-        agent.memory.add(state4, action4, reward[3], state_4, done[3]) 
+        #agent.memory.add(state4, action4, reward[3], state_4, done[3]) 
 
         agent.learn()
 
         state1 = state_1 
         state2 = state_2
         state3 = state_3
-        state4 = state_4
+        #state4 = state_4
         
         score1 += reward[0] 
         score2 += reward[1] 
         score3 += reward[2] 
-        score4 += reward[3]
+        #score4 += reward[3]
  
-        if done[0] and done[1] and done[2] and done[3]: 
-            score = max(score1, score2, score3, score4)
+        if done[0] and done[1] and done[2]: # and done[3]: 
+            score = max(score1, score2, score3) #, score4)
             if score > best_reward: 
                 best_reward = score 
             average_reward += score
@@ -269,8 +269,8 @@ for i in range(1, EPISODES+1):
             snake_length = np.sum(np.array(backup_snake))-4 
             enemy1_length = np.sum(np.array(backup_enemy1))-4 
             enemy2_length = np.sum(np.array(backup_enemy2))-4 
-            enemy3_length = np.sum(np.array(backup_enemy3))-4 
-            length = max(snake_length, enemy1_length, enemy2_length, enemy3_length)
+            #enemy3_length = np.sum(np.array(backup_enemy3))-4 
+            length = max(snake_length, enemy1_length, enemy2_length) #, enemy3_length)
             if length > best_length: 
                 best_length = length 
             average_length += length 
@@ -282,7 +282,7 @@ for i in range(1, EPISODES+1):
         backup_snake = snake 
         backup_enemy1 = enemy1 
         backup_enemy2 = enemy2 
-        backup_enemy3 = enemy3 
+        #backup_enemy3 = enemy3 
  
         episode_number.append(i) 
         average_reward_number.append(average_reward/i) 
