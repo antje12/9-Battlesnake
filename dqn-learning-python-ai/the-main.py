@@ -188,7 +188,7 @@ def extract_state(me, food, enemy1, enemy2, enemy3):
     map_array = map_array.reshape(features, height, width)
     return map_array
  
-agent = DQN_Solver()
+agent = DQN_Solver(load_model("final/final_model.pth"))
   
 best_reward = 0 
 best_length = 0 
