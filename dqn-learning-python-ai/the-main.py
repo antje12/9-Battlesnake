@@ -43,7 +43,7 @@ EXPLORATION_DECAY = 0.995
 EXPLORATION_MIN = 0.001
 GAMMA = 0.85
 
-EPISODES = 1000
+EPISODES = 3000
 
 class Network(torch.nn.Module): 
     def __init__(self): 
