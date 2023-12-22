@@ -17,7 +17,7 @@ from battlesnake_gym.snake import Snake
 features = 3
 height = 11
 width = 11
-env = BattlesnakeGym(map_size=(height, width), number_of_snakes=4, food_spawn_locations=[(1,2)]) 
+env = BattlesnakeGym(map_size=(height, width), number_of_snakes=4) 
 observation_space = (features, height, width) 
 print("Observation space:", observation_space) 
 action_space = 4 
