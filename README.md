@@ -1,7 +1,7 @@
 # 9-battlesnake
 
 ## Folder overview
-- /a-star-baseline: an A* agent for playing Battlesnake
+- /a-star-baseline > an A* agent for playing Battlesnake
 - /battlesnake-server: the Battlesnake server code for local execution
 - /dqn-learning-python-ai: the DQN agent training application
 - /dqn-learning-python-ai/battlesnake_gym: the OpenAI Battlesnake gym
