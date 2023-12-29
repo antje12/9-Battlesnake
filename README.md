@@ -2,12 +2,12 @@
 
 ## Folder overview
 - /a-star-baseline > an A* agent for playing Battlesnake
-- /battlesnake-server: the Battlesnake server code for local execution
-- /dqn-learning-python-ai: the DQN agent training application
-- /dqn-learning-python-ai/battlesnake_gym: the OpenAI Battlesnake gym
-- /dqn-learning-python-ai/final model: the final DQN model and console output for documentation
-- /dqn-learning-python-ai/final test: the 1000 test runs of DQN and A*
-- /dqn-playing-python-ai: the DQN agent playing application
+- /battlesnake-server > the Battlesnake server code for local execution
+- /dqn-learning-python-ai > the DQN agent training application
+- /dqn-learning-python-ai/battlesnake_gym > the OpenAI Battlesnake gym
+- /dqn-learning-python-ai/final model > the final DQN model and console output for documentation
+- /dqn-learning-python-ai/final test > the 1000 test runs of DQN and A*
+- /dqn-playing-python-ai > the DQN agent playing application
 
 ## Agent training
 - Go to the /dqn-learning-python-ai folder
