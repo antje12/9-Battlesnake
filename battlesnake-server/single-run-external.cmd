@@ -1,1 +1,0 @@
-battlesnake play -W 11 -H 11 --name TestSnake --url https://snake-python--antje12.repl.co/ -g solo -v
