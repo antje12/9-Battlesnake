@@ -1,7 +1,7 @@
 # 9-battlesnake
 A game run via 2 consoles
 ## Console 1 - The AI server
-- Go to the /a-star-playing-python-ai folder
+- Go to the /a-star-baseline folder
 - Run "pip install -r requirements.txt"
 - Run "python main.py"
 ## Console 2 - The game engine
