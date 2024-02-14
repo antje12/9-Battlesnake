@@ -23,7 +23,7 @@ print("Observation space:", observation_space)
 action_space = 4 
 print("Action space:", action_space) 
 
-EPISODES = 1000
+EPISODES = 3000
 
 # A* code start ====================================================
 class Node:
@@ -250,8 +250,11 @@ for i in range(1, EPISODES+1):
                 best_length = length 
             average_length += length 
             
-            print("Episode {} Avg Reward {} Avg Length {} Top Reward {} Top Length {} Last Reward {} Last Length {}"
-                  .format(i, round(average_reward/i, 3), round(average_length/i, 3), best_reward, best_length, score, length)) 
+            print("Episode {} Avg Reward {} Avg Length {} Top Reward {} Top Length {} Last Reward {} Last Length {} Explore {}"
+                  .format(i, round(average_reward/i, 3), round(average_length/i, 3), best_reward, best_length, score, length, 0)) 
+            with open('output.txt', 'a') as file:
+                file.write("Episode {} Avg Reward {} Avg Length {} Top Reward {} Top Length {} Last Reward {} Last Length {} Explore {}\n"
+                  .format(i, round(average_reward/i, 3), round(average_length/i, 3), best_reward, best_length, score, length, 0))
             break 
  
         backup_snake = snake 
